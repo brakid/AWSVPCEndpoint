@@ -1,0 +1,57 @@
+name: aws
+
+services:
+  awss3:
+    image: localstack/localstack:4.0.0
+    environment:
+      - SERVICES=s3
+    networks:
+      awsnetwork:
+  s3vpcendpoint:
+    image: alpine:latest
+    networks:
+      awsnetwork:
+      vpcnetwork:
+        ipv4_address: 172.16.1.11
+    command: >
+      sh -c "
+      apk add --no-cache socat openssl &&
+      openssl req -new -x509 -keyout /tmp/server.pem -out /tmp/server.pem -days 1 -nodes -subj '/CN=amazonaws.com' 2>/dev/null &&
+      echo 'Zertifikat erstellt. Starte socat Proxy...' &&
+      exec socat OPENSSL-LISTEN:443,cert=/tmp/server.pem,verify=0,fork,reuseaddr TCP:awss3:4566
+      "
+
+  vpcdns:
+    image: coredns/coredns:latest
+    networks:
+      vpcnetwork:
+        ipv4_address: 172.16.1.10
+    volumes:
+      - ./Corefile:/Corefile
+    command: ["-conf", "/Corefile"]
+
+  host:
+    image: alpine:latest
+    networks:
+      vpcnetwork:
+    dns:
+      - 172.16.1.10
+    command: ["sleep", "infinity"]
+    environment:
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_DEFAULT_REGION=us-east-1
+
+networks:
+  awsnetwork:
+    internal: true
+    enable_ipv6: false
+    ipam:
+      config:
+        - subnet: 172.16.0.0/24
+  vpcnetwork:
+    enable_ipv6: false
+    ipam:
+      config:
+        - subnet: 172.16.1.0/24
+

@@ -1,0 +1,15 @@
+s3.us-east-1.amazonaws.com {
+    template IN A s3.us-east-1.amazonaws.com {
+        answer "{{ .Name }} 60 IN A 172.16.1.11"
+    }
+
+    template IN AAAA s3.us-east-1.amazonaws.com {
+        rcode NOERROR
+    }
+}
+
+. {
+    forward . 8.8.8.8 1.1.1.1
+    log
+    errors
+}
