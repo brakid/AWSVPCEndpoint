@@ -1,7 +1,7 @@
 # Mimic AWS VPC Endpoints to Services
 
 ## Setup:
-* AWS Backbone Network (```awsnetwork***) where all AWS Services live
+* AWS Backbone Network (```awsnetwork```) where all AWS Services live
 * VPC Subnet (can be private or even isolated - ```vpcnetwork```) with VPC Endpoint providing a direct link (not via the subnets NAT endpoint) to an AWS Service (here: S3)
 * adding the DNS records to resolve requests for ```s3.us-east-1.amazonaws.com``` to our custom VPC Endpoint
 * the VPC endpoint in the VPC subnet (running ```socat```) forwards the TCP (via SSL) connection to the S3 mock in the AWS Backbone Network
